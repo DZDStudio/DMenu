@@ -1,0 +1,8 @@
+name: DMenu
+description: Paper 间歇泉菜单插件
+author: HaiPaya<haipaya@aliyun.com>
+website: https://github.com/PayaHai/DMenu
+version: '${version}'
+main: cn.dzdstudo.mc.dmenu.DMenu
+api-version: '1.21'
+softdepend: ["Geyser-Spigot", "floodgate-spigot", "Geyser", "floodgate"]
