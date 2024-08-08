@@ -9,6 +9,11 @@ buttons:
         # 点击按钮执行的操作内容
         # 如果按钮类型为 comm 或 opcomm 则填写需要玩家执行的命令（无需/）
         # 如果按钮类型为 form 或 opform 则填写要打开页面的名称 （即为文件名(去.yml后缀)）
+        playerType: all
+        # 可见玩家类型，可选：all be je
+        # all：所有玩家可见
+        # be：仅 BE 玩家可见
+        # je：仅 JE 玩家可见
         type: form
         # 点击按钮执行操作的类型，可选：comm opcomm form opform
         # comm：让玩家执行命令

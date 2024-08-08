@@ -32,7 +32,14 @@ public class JeUI implements Listener {
         // 整理按钮
         buttons.removeIf(item -> {
             String type = (String) item.get("type");
-            return (Objects.equals(type, "opcomm") || Objects.equals(type, "opform")) && !pl.isOp();
+            String playerType = (String) item.get("playerType");
+            if ((Objects.equals(type, "opcomm") || Objects.equals(type, "opform")) && !pl.isOp()) {
+                return true;
+            }
+            if (Objects.equals(playerType, "be")) {
+                return true;
+            }
+            return false;
         });
 
         // 添加边框
