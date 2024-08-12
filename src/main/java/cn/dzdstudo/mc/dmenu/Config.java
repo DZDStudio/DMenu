@@ -74,6 +74,10 @@ public class Config {
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {
+                    // 不是.yml文件
+                    if (!file.getName().endsWith(".yml")) {
+                        continue;
+                    }
                     String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
                     sender.sendMessage("[DMenu] 加载页面配置文件: " + fileName + "[" + file.getName() + "]");
                     formFiles.put(fileName, YamlConfiguration.loadConfiguration(file));
