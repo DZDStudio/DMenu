@@ -7,8 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -21,7 +19,7 @@ public class JeUI implements Listener {
 
     public static void open(Player pl, String path, int page) {
         // 读取配置文件
-        FileConfiguration conf = Config.CONFIGS.get(path);
+        FileConfiguration conf = Config.formFiles.get(path);
 
         // 构造箱子 UI
         Inventory inventory = Bukkit.createInventory(null, 3*9, Objects.requireNonNull(conf.getString("name")));
@@ -31,14 +29,16 @@ public class JeUI implements Listener {
 
         // 整理按钮
         buttons.removeIf(item -> {
-            String type = (String) item.get("type");
-            String playerType = (String) item.get("playerType");
-            if ((Objects.equals(type, "opcomm") || Objects.equals(type, "opform")) && !pl.isOp()) {
+            Boolean isOp = (Boolean) item.get("isOp");
+            String visible = (String) item.get("visible");
+            if (isOp && !pl.isOp()) {
                 return true;
             }
-            if (Objects.equals(playerType, "be")) {
+
+            if (Objects.equals(visible, "be")) {
                 return true;
             }
+
             return false;
         });
 
@@ -59,6 +59,18 @@ public class JeUI implements Listener {
             inventory.setItem(i, frameItemStack);
         }
 
+        String content = (String) conf.get("content");
+        if (content != null) {
+            // 根据\n分割成数组
+            String[] contentArray = content.split("\n");
+            ItemStack contentItemStack = new ItemStack(Material.PAPER);
+            ItemMeta contentMeta = contentItemStack.getItemMeta();
+            contentMeta.setDisplayName(" ");
+            contentMeta.setLore(List.of(contentArray));
+            contentItemStack.setItemMeta(contentMeta);
+            inventory.setItem(4, contentItemStack);
+        }
+
         /* 处理按钮 */
         // 单行页是否可以显示
         boolean isSinglePage = buttons.size() <= 9;
@@ -72,7 +84,7 @@ public class JeUI implements Listener {
             int currentPosition = 9;
             for (Map<?, ?> button : buttons) {
                 // 读取要添加的按钮（物品）
-                Map<?, ?> item = (Map<?, ?>) button.get("item");
+                Map<?, ?> item = (Map<?, ?>) button.get("Je");
 
                 // 添加
                 Material itemType = Material.getMaterial(((String) item.get("type")).toUpperCase());
@@ -200,14 +212,12 @@ public class JeUI implements Listener {
             }
             Map<?, ?> button = buttons.get(rawSlot - 10);
 
-            if (button.get("type").equals("comm")) {
-                pl.performCommand((String) button.get("open"));
-            } else if (button.get("type").equals("opcomm")) {
-                pl.performCommand((String) button.get("open"));
+            if (button.get("type").equals("cmd")) {
+                pl.performCommand((String) button.get("run"));
+            } else if (button.get("type").equals("console_cmd")) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (String) button.get("run"));
             } else if (button.get("type").equals("form")) {
-                open(pl, (String) button.get("open"), 1);
-            } else if (button.get("type").equals("opform")) {
-                open(pl, (String) button.get("open"), 1);
+                open(pl, (String) button.get("run"), 1);
             }
         } else {
             if (rawSlot == 10) {
@@ -227,14 +237,12 @@ public class JeUI implements Listener {
                 }
                 Map<?, ?> button = buttons.get(rawSlot - 11);
 
-                if (button.get("type").equals("comm")) {
-                    pl.performCommand((String) button.get("open"));
-                } else if (button.get("type").equals("opcomm")) {
-                    pl.performCommand((String) button.get("open"));
+                if (button.get("type").equals("cmd")) {
+                    pl.performCommand((String) button.get("run"));
+                } else if (button.get("type").equals("console_cmd")) {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (String) button.get("run"));
                 } else if (button.get("type").equals("form")) {
-                    open(pl, (String) button.get("open"), 1);
-                } else if (button.get("type").equals("opform")) {
-                    open(pl, (String) button.get("open"), 1);
+                    open(pl, (String) button.get("run"), 1);
                 }
             }
         }

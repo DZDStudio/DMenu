@@ -1,0 +1,7 @@
+openItemType: "clock"
+# 打开菜单物品类型,MC 标准类名，不要带 “minecraft:”
+openItemName: "§6菜单"
+# 打开菜单物品显示名称
+openItemLore:
+# 打开菜单物品的描述
+    - "§7使用我打开菜单"

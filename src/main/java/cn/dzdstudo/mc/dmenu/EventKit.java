@@ -9,13 +9,12 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class EventKit implements Listener {
     /**
@@ -29,11 +28,23 @@ public class EventKit implements Listener {
         return plugin != null && plugin.isEnabled();
     }
 
+    private boolean isOpenFormItem(ItemStack item) {
+        return item != null && item.getType() == Material.getMaterial(Objects.requireNonNull(Config.Config.getString("openItemType").toUpperCase())) && item.getItemMeta().getLore().contains("openMenu");
+    }
+
     // 使用物品
+    protected Map<UUID, Long> useFormPlayers = new HashMap<>();
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player pl = event.getPlayer();
-        if (event.getItem() != null && event.getItem().getType() == Material.CLOCK) {
+        if (isOpenFormItem(event.getItem())) {
+            // 1s内禁止打开
+            if (useFormPlayers.containsKey(pl.getUniqueId()) && System.currentTimeMillis() - useFormPlayers.get(pl.getUniqueId()) < 1000) {
+                return;
+            }
+
+            useFormPlayers.put(pl.getUniqueId(), System.currentTimeMillis());
+
             // 打开菜单
             boolean isGeyser = isPluginLoaded("Geyser-Spigot") && isPluginLoaded("floodgate");
 
@@ -56,44 +67,67 @@ public class EventKit implements Listener {
     /* 给钟 */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        ItemStack clock = getCustomClock();
+        Player pl = event.getPlayer();
 
-        // Check if the player already has the clock
-        if (!player.getInventory().contains(clock)) {
-            player.getInventory().addItem(clock);
+        ItemStack[] inventory = pl.getInventory().getContents();
+        ItemStack clock = getOpenFormItem();
+
+        boolean haveOpenFormItem = false;
+        for (ItemStack item : inventory) {
+            if (item != null && item.hasItemMeta()) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta.hasLore()) {
+                    List<String> lore = meta.getLore();
+                    if (lore.contains("openMenu")) {
+                        haveOpenFormItem = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!haveOpenFormItem) {
+            pl.getInventory().addItem(clock);
         }
     }
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
-        if (isCustomClock(item)) {
+        if (isOpenFormItem(item)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        event.getDrops().removeIf(this::isCustomClock);
+        ItemStack[] drops = event.getDrops().toArray(new ItemStack[0]);
+        String targetLore = "openMenu";
+
+        for (int i = 0; i < drops.length; i++) {
+            ItemStack item = drops[i];
+            if (item != null && item.hasItemMeta()) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta.hasLore()) {
+                    List<String> lore = meta.getLore();
+                    if (lore.contains(targetLore)) {
+                        drops[i] = null;
+                    }
+                }
+            }
+        }
     }
 
-    private ItemStack getCustomClock() {
-        ItemStack clock = new ItemStack(Material.CLOCK);
+    private ItemStack getOpenFormItem() {
+        ItemStack clock = new ItemStack(Objects.requireNonNull(Material.getMaterial(Objects.requireNonNull(Config.Config.getString("openItemType").toUpperCase()))));
         ItemMeta meta = clock.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§6菜单");
-            meta.setLore(Arrays.asList("§7使用即可打开菜单"));
+            meta.setDisplayName(Config.Config.getString("openItemName"));
+            List<String> lore = Config.Config.getStringList("openItemLore");
+            lore.add("openMenu");
+            meta.setLore(lore);
             clock.setItemMeta(meta);
         }
         return clock;
-    }
-
-    private boolean isCustomClock(ItemStack item) {
-        if (item == null || item.getType() != Material.CLOCK) {
-            return false;
-        }
-        ItemMeta meta = item.getItemMeta();
-        return meta != null && "§6菜单".equals(meta.getDisplayName());
     }
 }

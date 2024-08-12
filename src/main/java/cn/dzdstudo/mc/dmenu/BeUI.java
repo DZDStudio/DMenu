@@ -16,37 +16,41 @@ public class BeUI {
         FloodgateApi floodgateApi = FloodgateApi.getInstance();
 
         // 读取配置文件
-        FileConfiguration conf = Config.CONFIGS.get(path);
+        FileConfiguration conf = Config.formFiles.get(path);
 
         // 构件表单
         SimpleForm.Builder formBuilder = SimpleForm.builder();
 
         formBuilder.title((String) conf.get("name"));
+        formBuilder.content((String) conf.get("content"));
 
         // 读取按钮列表
         List<Map<?, ?>> buttons = conf.getMapList("buttons");
 
         // 整理按钮
         buttons.removeIf(item -> {
-            String type = (String) item.get("type");
-            String playerType = (String) item.get("playerType");
-            if ((Objects.equals(type, "opcomm") || Objects.equals(type, "opform")) && !pl.isOp()) {
+            Boolean isOp = (Boolean) item.get("isOp");
+            String visible = (String) item.get("visible");
+            if (isOp && !pl.isOp()) {
                 return true;
             }
-            if (Objects.equals(playerType, "be")) {
+
+            if (Objects.equals(visible, "je")) {
                 return true;
             }
+
             return false;
         });
 
         // 添加按钮
         for (Map<?, ?> item : buttons) {
-            if(item.get("path") != null) {
+            Map<String, String> BeItem = (Map<String, String>) item.get("Be");
+            if(BeItem.get("path") != null) {
                 // 地址图片
-                formBuilder.button((String) item.get("name"), FormImage.Type.PATH, (String) item.get("path"));
-            } else if(item.get("url") != null) {
+                formBuilder.button((String) item.get("name"), FormImage.Type.PATH, (String) BeItem.get("path"));
+            } else if(BeItem.get("url") != null) {
                 // URL图片
-                formBuilder.button((String) item.get("name"), FormImage.Type.URL, (String) item.get("url"));
+                formBuilder.button((String) item.get("name"), FormImage.Type.URL, (String) BeItem.get("url"));
             } else {
                 // 文字表单
                 formBuilder.button((String) item.get("name"));
@@ -59,20 +63,16 @@ public class BeUI {
                 int index = res.clickedButtonId();
                 Map<?, ?> item = buttons.get(index);
 
-                if(Objects.equals(item.get("type"), "comm")) {
-                    Bukkit.getServer().dispatchCommand(pl, (String) item.get("open"));
+                if(Objects.equals(item.get("type"), "cmd")) {
+                    Bukkit.getServer().dispatchCommand(pl, (String) item.get("run"));
                 }
 
-                if(Objects.equals(item.get("type"), "opcomm")) {
-                    Bukkit.getServer().dispatchCommand(pl, (String) item.get("open"));
+                if(Objects.equals(item.get("type"), "console_cmd")) {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (String) item.get("run"));
                 }
 
                 if(Objects.equals(item.get("type"), "form")) {
-                    open(pl, (String) item.get("open"));
-                }
-
-                if(Objects.equals(item.get("type"), "opform")) {
-                    open(pl, (String) item.get("open"));
+                    open(pl, (String) item.get("run"));
                 }
             }
         });
