@@ -7,41 +7,42 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class Config {
     private static final Plugin PLUGIN = Bukkit.getServer().getPluginManager().getPlugin("DMenu");
-    public static Map<String, YamlConfiguration> CONFIGS = new HashMap<>();
+    public static Map<String, YamlConfiguration> formFiles = new HashMap<>();
+    public static YamlConfiguration Config;
 
     public static void reloadConfigs() {
         Logger.info("正在读取配置文件...");
 
         // 判断默认配置文件是否存在
-        if(!new File(PLUGIN.getDataFolder(), "main.yml").exists()) {
+        if(!new File(PLUGIN.getDataFolder(), "Forms/main.yml").exists() || !new File(PLUGIN.getDataFolder(), "config.yml").exists()) {
             Logger.info("找不到配置文件，正在创建默认配置文件...");
-            PLUGIN.saveResource("main.yml", false);
-            PLUGIN.saveResource("cs.yml", false);
+            PLUGIN.saveResource("config.yml", false);
+            PLUGIN.saveResource("Forms/main.yml", false);
+            PLUGIN.saveResource("Forms/cs.yml", false);
         }
 
         // 清空 map
-        CONFIGS.clear();
+        formFiles.clear();
 
-        // 读取主文件
-        Logger.info("加载页面配置文件: main.yml");
-        File file = new File(PLUGIN.getDataFolder(), "main.yml");
-        YamlConfiguration main = YamlConfiguration.loadConfiguration(file);
-        CONFIGS.put("main", main);
+        // 读取配置文件
+        Config = YamlConfiguration.loadConfiguration(new File(PLUGIN.getDataFolder(), "config.yml"));
 
-        List<Map<?, ?>> buttons = main.getMapList("buttons");
+        // 读取菜单文件
+        File formFolder = new File(PLUGIN.getDataFolder(), "Forms");
 
-        // 解析并读取其他页面
-        for (Map<?, ?> item : buttons) {
-            if(Objects.equals(item.get("type"), "form")) {
-                Logger.info("加载页面配置文件: " + item.get("open") + ".yml");
-                File itFile = new File(PLUGIN.getDataFolder(), item.get("open") + ".yml");
-                CONFIGS.put((String) item.get("open"), YamlConfiguration.loadConfiguration(itFile));
+        File[] files = formFolder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
+                    Logger.info("加载页面配置文件: " + fileName + "[" + file.getName() + "]");
+                    formFiles.put(fileName, YamlConfiguration.loadConfiguration(file));
+                }
             }
         }
 
@@ -52,28 +53,31 @@ public class Config {
         sender.sendMessage("[DMenu] 正在读取配置文件...");
 
         // 判断默认配置文件是否存在
-        if(!new File(PLUGIN.getDataFolder(), "main.yml").exists()) {
+        if(!new File(PLUGIN.getDataFolder(), "Forms/main.yml").exists() || !new File(PLUGIN.getDataFolder(), "config.yml").exists()) {
             sender.sendMessage("[DMenu] 找不到配置文件，正在创建默认配置文件...");
-            PLUGIN.saveResource("main.yml", false);
+            PLUGIN.saveResource("config.yml", false);
+            PLUGIN.saveResource("Forms/main.yml", false);
+            PLUGIN.saveResource("Forms/cs.yml", false);
         }
 
         // 清空 map
-        CONFIGS.clear();
+        formFiles.clear();
 
-        // 读取主文件
-        sender.sendMessage("[DMenu] 加载页面配置文件: main.yml");
-        File file = new File(PLUGIN.getDataFolder(), "main.yml");
-        YamlConfiguration main = YamlConfiguration.loadConfiguration(file);
-        CONFIGS.put("main", main);
+        // 读取配置文件
+        Config = YamlConfiguration.loadConfiguration(new File(PLUGIN.getDataFolder(), "config.yml"));
 
-        List<Map<?, ?>> buttons = main.getMapList("buttons");
+        // 读取菜单文件
+        File formFolder = new File(PLUGIN.getDataFolder(), "Forms");
 
-        // 解析并读取其他页面
-        for (Map<?, ?> item : buttons) {
-            if(Objects.equals(item.get("type"), "form")) {
-                sender.sendMessage("[DMenu] 加载页面配置文件: " + item.get("open") + ".yml");
-                File itFile = new File(PLUGIN.getDataFolder(), item.get("open") + ".yml");
-                CONFIGS.put((String) item.get("open"), YamlConfiguration.loadConfiguration(itFile));
+        File[] files = formFolder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
+                    sender.sendMessage("[DMenu] 加载页面配置文件: " + fileName + "[" + file.getName() + "]");
+                    formFiles.put(fileName, YamlConfiguration.loadConfiguration(file));
+                }
             }
         }
 
