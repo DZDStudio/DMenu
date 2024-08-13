@@ -5,7 +5,7 @@ website: https://github.com/PayaHai/DMenu
 version: '${version}'
 main: cn.dzdstudo.mc.dmenu.DMenu
 api-version: '1.21'
-softdepend: ["Geyser-Spigot", "floodgate"]
+softdepend: ["floodgate"]
 
 commands:
     DMenu:

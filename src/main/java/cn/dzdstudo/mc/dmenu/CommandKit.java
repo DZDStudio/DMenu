@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.geysermc.floodgate.api.FloodgateApi;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,10 +48,11 @@ public class CommandKit implements CommandExecutor , TabCompleter {
         }
 
         if (sender instanceof Player pl) {
-            boolean isGeyser = isPluginLoaded("Geyser-Spigot") && isPluginLoaded("floodgate");
+            boolean isGeyser = isPluginLoaded("floodgate");
 
             if (isGeyser) {
-                boolean isBePlayer = GeyserApi.api().isBedrockPlayer(pl.getUniqueId());
+                FloodgateApi floodgateApi = FloodgateApi.getInstance();
+                boolean isBePlayer = floodgateApi.isFloodgatePlayer(pl.getUniqueId());
                 if (isBePlayer) {
                     BeUI.open(pl, "main");
                 } else {

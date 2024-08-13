@@ -22,7 +22,11 @@ public class BeUI {
         SimpleForm.Builder formBuilder = SimpleForm.builder();
 
         formBuilder.title((String) conf.get("name"));
-        formBuilder.content((String) conf.get("content"));
+
+        String content = (String) conf.get("content");
+        if (content != null) {
+            formBuilder.content(content);
+        }
 
         // 读取按钮列表
         List<Map<?, ?>> buttons = conf.getMapList("buttons");
